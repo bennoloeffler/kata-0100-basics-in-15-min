@@ -10,9 +10,28 @@ On linux an macos you may use [SDKMAN](https://sdkman.io/). If you want to insta
 - macos:  
 `brew install java`   
 `brew install leiningen`    
+  
 - linux (debian, ubuntu, mint):  
 `sudo apt install java`    
-`sudo apt install leiningen`  
+`sudo apt install leiningen`    
+
+then  
+[install vscode](https://code.visualstudio.com/docs/setup/linux)    
+
+then    
+`git clone https://github.com/bennoloeffler/kata-0100-basics-in-15-min.git`
+
+then  
+cd to the projects directory  
+ and start vs-code by:  
+`code .`
+
+then  
+explore the file    
+calva.clj, then  
+core.clj, then  
+cards.clj, then  
+the_100.clj  
 
 # all ideas are stolen from...
 
