@@ -1,43 +1,41 @@
 (ns kata-0100-basics-in-15-min.cards
   [:require
-   ;[clojure.string :as str]
-   ;[clojure.set :as set]
+   [clojure.string :as str]
    [clojure.test :refer [deftest testing is are]]
    [erdos.assert :as ea]])
 
+
 (defmacro make-sure
-  "This macro can be used as condition in 
+  "This macro can be used as inline-assertion 
+   in all kinds of forms. 
    - pre- and post-conditions.
    - let bindings.
-   It produces meaningful error messages by erdos power asserts.
-   If everything is ok, that means 
-   (assert (pred val)), 
-   it returns the val."
-  [pred val]
+   It produces meaningful error messages 
+   by erdos power asserts.
+   If the assertion holds, meaning 
+   (= true (pred val-or-form)), 
+   it returns the (evaluated) val-or-form as value."
+  [pred val-or-form]
   `(do
-     (when-not (~pred ~val)
-       (when (not= '~val (eval ~val)) ; when evaluation makes a difference (not value)
-         (println '~val " = " (eval ~val) "(type:" (type (eval ~val)) ")")))
-     (when (nil? (ea/assert (~pred ~val)))
-       ~val)))
-(comment
-  (let [n "17"
-        new-n (make-sure int? n)]
-    (println new-n))
-  (let [n 17
-        new-n (make-sure int? n)]
-    (println new-n))
-  )
+     (when-not (~pred ~val-or-form)
+       (when (not= '~val-or-form (eval ~val-or-form)) ; when evaluation makes a difference (not value)
+         (print '~val-or-form " = ") 
+         (pr (eval ~val-or-form))
+         (println (str "  (" (type (eval ~val-or-form)) ")"))))
+     (when (nil? (ea/assert (~pred ~val-or-form)))
+       ~val-or-form)))
+
 
 (defmacro make-sure-2
   "This macro can be used as condition in 
    - pre- and post-conditions.
-   - let bindings.
-   It produces meaningful error messages by erdos power asserts.
-   If everything is ok, that means 
+   - let bindings - ALMOST like make-sure.
+   It is not limited to (pred form) but checks 
+   one form - and assumes, the value to pass is the last 
+   element in the form. 
    (assert form), 
    it returns the the last element, e.g. 
-   (make-sure-2 (= 2 (+ 1 1))) delivers (+ 1 1)"
+   (make-sure-2 (= 2 (+ 1 1))) delivers the evaluated (+ 1 1), which is 2."
   [form]
   `(let [l# (last '~form)]
      (when-not ~form
@@ -45,12 +43,36 @@
          (println (str l# " = " (eval l#)))))
      (when (nil? (ea/assert ~form))
        (eval l#))))
+
+
 (comment
-  (make-sure-2 (= 2 (+ 12 1)))
+  (let [n 1.0M
+        new-n (make-sure int? n)]
+    (println new-n))
+  (let [n 17
+        new-n (make-sure int? n)]
+    (println new-n))
+  (let [new-n (make-sure int? (str "a" "+" "b"))]
+    (println new-n))
+  (let [new-n (make-sure string? (str "a" "+" "b"))]
+    (println new-n))
+  (let [square (fn [num]
+                 {:pre [(make-sure number? num)]
+                  :post [(make-sure-2 (< % 1000))
+                         (make-sure number? %)]}
+                 (* num num))
+        n 55]
+    (println (square n)))
+  )
+
+
+(comment
+  (make-sure-2 (= 13 (+ 12 1)))
   (def n "17")
-  (let [other-n (make-sure-2 (string? (clojure.string/join (repeat 15 n))))]
+  (let [other-n (make-sure-2 (string? (str/join (repeat 15 n))))]
     other-n)
   )
+
 ; -------------------------------------------------------------------
 ;                 "A two player card game with simple rules:
 ;                  Play one Card - if the other has one with more value, both Cards go to him, else to you.
@@ -756,6 +778,7 @@
 (comment
   (card-as-vec [2 [2 "b" "b"] [3 "c" "c"]])
   (card-as-vec [2 "b" "b"]))
+
 (defn next-turn
   ""
   [game]
@@ -782,21 +805,22 @@
         pair (pair? cards-turn)
         ass (and (not pair) (= 14 (c-val cards-turn)))
         back-card (if pair #_(or ass pair) (first shuffled-in) nil)
-        win-cards (if pair #_(or ass pair) (rest shuffled-in) shuffled-in)]
-    ;(println (get-in game [:players (players 0) :name]) ",  turn: " cards-turn "   hand: " player-turn-hand)
-    ;(println (get-in game [:players (players 1) :name]) ", react: " cards-react "   hand: " player-react-hand)
-    ;(println who-won-turn "got: " win-cards)
-    ;(println who-lost-turn "lost ")
-    ;(when back-card (println "got back: " back-card))
-    ;(println "next move: " players)
-    (let [game (-> game
-                   (assoc-in [:players (players 0) :at-hand] player-turn-hand)
-                   (assoc-in [:players (players 1) :at-hand] player-react-hand)
-                   (update-in [:players who-won-turn :at-hand] concat win-cards)
-                   (assoc-in [:players :next-turn] players-new))]
-      (if back-card
-        (update-in game [:players who-lost-turn :at-hand] conj back-card)
-        game))))
+        win-cards (if pair #_(or ass pair) (rest shuffled-in) shuffled-in)
+        ;_ (println (get-in game [:players (players 0) :name]) ",  turn: " cards-turn "   hand: " player-turn-hand)
+        ;_ (println (get-in game [:players (players 1) :name]) ", react: " cards-react "   hand: " player-react-hand)
+        ;_ (println who-won-turn "got: " win-cards)
+        ;_ (println who-lost-turn "lost ")
+        ;_ (when back-card (println "got back: " back-card))
+        ;_ (println "who move: " players)
+        game (-> game
+                 (assoc-in [:players (players 0) :at-hand] player-turn-hand)
+                 (assoc-in [:players (players 1) :at-hand] player-react-hand)
+                 (update-in [:players who-won-turn :at-hand] concat win-cards)
+                 (assoc-in [:players :next-turn] players-new))]
+   
+    (if back-card
+      (update-in game [:players who-lost-turn :at-hand] conj back-card)
+      game)))
 
 (comment
   (next-turn a-game))
@@ -833,7 +857,7 @@
     (frequencies (map (fn [_] (same-game)) (range 1000)))))
 
 (defn -main [& args]
-  (println (play a-game)))
+  (println (play c-game)))
 
 (comment
   (-main)
