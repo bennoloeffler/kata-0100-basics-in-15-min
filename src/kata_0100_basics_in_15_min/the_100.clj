@@ -19,7 +19,7 @@
 
 ; is ; Assert that an expression returns truthy inside of a test. ; 182587
 (use 'clojure.test)
-(deftest my-test
+(deftest my-test-1
   (is (= 42 43)))
 (run-tests)
 
@@ -39,8 +39,8 @@
 
 ; deftest ; Define a test. ; 62985
 (use 'clojure.test)
-(deftest my-test
-  (is (= 42 43)))
+(deftest my-test-2
+  (is (= 42 42)))
 
 ; map ; Create a seq whose elements are the result of applying a function to the elements of another seq.;52295
 (map inc (range 3))
@@ -58,6 +58,7 @@
 (defn- my-priv [x y z]
   (let [z (* x y z)]
     z))
+
 ; first ; Return the initial element of a seq. ; 37981
 (first [4 6 9])
 
@@ -334,6 +335,8 @@ contains?;Does a key appear in an associative data structure?;7300
 (dissoc {:a 1 :b 2 :c 3} :b)
 
 ; defrecord ; Create a new record type.;5409
+(defrecord Person [fname lname address])
+(->Person "Leo" "Kiefer" "Sesamstraße")
 
 ; comp ; Compose two or more functions.;5305
 (def negative-quotient (comp - /))
@@ -348,3 +351,4 @@ contains?;Does a key appear in an associative data structure?;7300
 (float 1.111111111111111111111111111M)
 
 ; select ; Return a new set keeping only elements that are truthy for a given predicate.;5129
+(clojure.set/select odd? #{1 2 3 4 5})

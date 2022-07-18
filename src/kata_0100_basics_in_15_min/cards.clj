@@ -76,11 +76,13 @@
 ; -------------------------------------------------------------------
 ;                 "A two player card game with simple rules:
 ;                  Play one Card - if the other has one with more value, both Cards go to him, else to you.
-;                  Play two Cards - if the other can go below and above, you need to give a third and the 
-;                  other get's your three cards. If you win - so if the other can not go below and above: 
-;                  he needs to give you two (random) cards.
+;                  Exception: A 7 may override a ass.
+;                  Play two Cards - if the other can go below and above, you lose.
+;                  If he can't you win.
+;                  The looser get's one random card of the four back. 
 ;                  Corner Case: if you play pair with 7, an A counts as below - nothing else.
 ;                  Corner Case: if you play pair with A, a 7 counts as above - nothing else."
+;                 How to do that in clojure?
 ;                 - write a data structure to represent the cards, the two players and the state of the game.
 ;                 - write a function that returns an empty card game structure.
 ;                 - write a function to initialize it 
@@ -839,8 +841,8 @@
   (loop [game game round 0]
     ;(println "----- ROUND: " round)
     (if-let [end (or
-                  (if (> round 20)
-                    :exhausted-by-20-rounds
+                  (if (> round 200)
+                    :exhausted-by-200-rounds
                     nil)
                   (winner game))]
       end
@@ -857,7 +859,7 @@
     (frequencies (map (fn [_] (same-game)) (range 1000)))))
 
 (defn -main [& args]
-  (println (play c-game)))
+  (println (play a-game)))
 
 (comment
   (-main)
