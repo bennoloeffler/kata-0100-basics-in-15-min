@@ -3,7 +3,7 @@
   :url "http://"
   :license {:name "WTFPL"
             :url "http://www.wtfpl.net/txt/copying/"}
-  :dependencies [[org.clojure/clojure "1.10.3"]
+  :dependencies [[org.clojure/clojure "1.11.1"]
                  [io.github.erdos/erdos.assert "0.2.3"]]
   :main ^:skip-aot kata-0100-basics-in-15-min.core
   :target-path "target/%s"

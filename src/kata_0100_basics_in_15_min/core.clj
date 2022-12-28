@@ -62,14 +62,15 @@ reduce  ; that take or create other functions.
 ; File naming is typically kata_0100_basics_in_15_min/core
 ; So the point marks subdirectories. The - is replaced by _
 
-(ea/assert (= (+ 3 4) (- 10 3)))
-;(ea/assert (= (+ 3 4) (- 10 4))) ; this fails...
-
 ; now we can use symbols of namespace clojure.set
 ; by prefixing them with set/
 (set/intersection
  #{1 :a "b" false}
  #{11 :a "b" true})
+
+; or from erdos.assert prefixing with ea
+(ea/assert (= (+ 3 4) (- 10 3)))
+;(ea/assert (= (+ 3 4) (- 10 4))) ; this fails...
 
 ; the function join from the namespace clojure.string
 ; may be used in different forms - depending on how the namespace 
@@ -78,7 +79,8 @@ clojure.string/join ;; plain :require -> complete namespace as prefix
 str/join ;; :require :as str -> abbrevation str as prefix
 join ;; :require :refer [join] -> no prefix at all
 
-; you may leave things out... this is not valid because of #_
+; you may leave things out...
+; This is is also a kind of comment - an IGNORED form - because of #_
 #_(ns kata-0100-basics-in-15-min.core
     (:require [clojure.set]
               [clojure.string :as str]))
@@ -163,9 +165,9 @@ join ;; :require :refer [join] -> no prefix at all
 ; it puts the last result at the very end of the next parameter list, 
 ; there: (  ,,,)
 (->> [1 2 3 4 5 6]
-     (filter odd?)
-     (map #(* % %))
-     (reduce + 100))
+     (filter odd? ,,,)
+     (map #(* % %) ,,,)
+     (reduce + 100 ,,,))
 
 ; see what the "threading macro does..."
 (macroexpand '(->> [1 2 3 4 5 6]
@@ -174,7 +176,7 @@ join ;; :require :refer [join] -> no prefix at all
                    (reduce + 100)))
 
 ; A little bit more understandable may be this one.
-; In the first line, the vector is bound to a symblol, $ in this example.
+; In the first line, the vector is bound to a symbol, $ in this example.
 ; Then, each line rebinds its result to $ and it is used at the
 ; right position in the next line.
 ; You may do it step by step... SHIFT-OPTION-ENTER
@@ -192,7 +194,8 @@ join ;; :require :refer [join] -> no prefix at all
     str/upper-case
     (str/replace "A" "X")
     (str/split #" ")
-    second)
+    reverse
+    last)
 
 ; -------------------------------------------------------------------
 ;            defining symbols, variables and functions 
@@ -237,7 +240,7 @@ join ;; :require :refer [join] -> no prefix at all
   ([x] (str "We live on a line at adress: " x))
   ([long lat] (str "On a ideal round planet, long = " long ", lat = " lat))
   ([x y z] (str "somewhere in space. " x " " y " " z))
-  ([x y z & more] (str (dimension x y z) ", and beyond imaginagion: " more)))
+  ([x y z & more] (str (dimension x y z) ", and beyond imagination: " more)))
 
 (dimension)
 (dimension 15)
@@ -254,6 +257,7 @@ join ;; :require :refer [join] -> no prefix at all
      acc)))
 
 (recurse-somehow-3 10)
+; (recurse-somehow-3 100000) ; try this... stack overflow
 
 ; This is proper recursion in clojure without building up stack.
 ; Basically, thats the way, functional looping is done.
@@ -266,7 +270,7 @@ join ;; :require :refer [join] -> no prefix at all
       (recur (- n 3) (conj acc n)) ; re-enter the loop and set n to (n-3) and acc to (conj acc n)
       acc)))
 
-(recurse-somehow-3-proper 16000)
+(recurse-somehow-3-proper 100000)
 
 ; Re-Def's are only for debugging and repl. Remember that
 ; *earmuffs* are a convention for global, mutable variables.
@@ -323,14 +327,13 @@ join ;; :require :refer [join] -> no prefix at all
 (+ 1 2 3) ;; with 3 or more
 
 ; Math is straightforward
-(+ 1 1) ;; => 2
 (- 2 1) ;; => 1
 (* 1 2) ;; => 2
 (/ 2 4) ;; => 1/2 which is a Ratio
 (/ 2.0 4) ;; => 0.5 which is a Double
 (/ 8 2 2 2) ;; => 1 (need to get used to the meaning 8/2/2/2)
 (mod 16 5) ;; => 1 (modulo)
-(quot 9.5 -5.0) ;; => 3.0 (quotient, integerish)
+(quot 9.5 -5.0) ;; => -1.0 (quotient, integerish)
 (quot 9 4)
 
 ; Math from Java
@@ -341,8 +344,8 @@ Math/PI
 ; static field Math.PI becomes Math/PI 
 (let [pi Math/PI
       pi-half (/ pi  2)] ; bind two variables
-  (Math/sin pi-half) ; return a vector of two numbers,
-  (Math/sin pi)) ; sin(pi) is not exactly zero...
+  [(Math/sin pi-half) ; return a vector of two numbers,
+   (Math/sin pi)]) ; sin(pi) is not exactly zero...
 ; the last expression of a function body is its return value
 
 ; Equality is also a function...
@@ -353,17 +356,18 @@ Math/PI
 
 ; KATA: try to subtract down to zero 
 (- 10)
-; HINT: (- 10 2 3 1 2) is near zero
+; HINT:
+#_(- 10 2 3 1 2) ;is near zero
 
 ; KATA: operator or symbol? Evaluate it.
 ; remove the space between - and 10. Evaluate it.
-- 10
+'(- 10)
 
 ; KATA: Uncomment and evaluate (10) below.
 ;(10)
 ; See the Exception - this is a VERY common error.
 ; You try to evaluate a symbol as a function
-; that is not a known function.
+; that is not a known function. does not impl IFN interface
 
 ; define your own function
 ; evaluating the function means:
@@ -373,8 +377,15 @@ Math/PI
   [x] ;; why call it x? see: https://github.com/bbatsov/clojure-style-guide#idiomatic-names
   (* x x))
 
+; this is the longer form
+(def square-twice
+  "n * n * n * n"
+  (fn [x] ;; why call it x? see: https://github.com/bbatsov/clojure-style-guide#idiomatic-names
+    (* x x x x)))
+
 ; now use the function
 (square 5)
+(square-twice 5)
 
 ; KATA create a function 'triple' and use it.
 
@@ -461,23 +472,23 @@ false
 
 ; A more functional style of viewing all types 
 ; apply the function 'type' to every element in the vector...
-(map type [+
-           1
-           1N
-           2.0
-           3.0M
-           1/3
-           "2"
-           :three
-           \f
-           false
-           nil
-           '(1 2 3)
-           '()
-           {:1 2 :3 4 :5 6 :7 8 :9 1 :2 3 :4 5 :6 7 :8 9} ;; => big = PersistentHashMap
-           {:1 2} ;; => small = PersistentArrayMap 
-           []
-           #{}])
+(map #(vec [% (type %)]) [+
+                            1
+                            1N
+                            2.0
+                            3.0M
+                            1/3
+                            "2"
+                            :three
+                            \f
+                            false
+                            nil
+                            '(1 2 3)
+                            '()
+                            {:1 2 :3 4 :5 6 :7 8 :9 1 :2 3 :4 5 :6 7 :8 9} ;; => big = PersistentHashMap
+                            {:1 2} ;; => small = PersistentArrayMap
+                            []
+                            #{}])
 
 
 ; -------------------------------------------------------------------
@@ -516,7 +527,7 @@ false
 ; again...
 + ; the symbol, which gets fully resolved to a function by clojure
 '+ ; quoted, just the symbol +
-#'+ ; resolving the symbol results in the Var
+#'+ ; resolving the symbol results in the Var with namespace
 @#'+ ; dereferencing the var results in the function (or value)
 (=  +   @#'+) ; IDENTICAL
 
@@ -526,7 +537,7 @@ false
 ;; in order to use it, you just need the symbol...
 (+ 4 5)
 ; the + will be "resolved to a var, 
-; dereferenced to a value 
+; dereferenced to a value (the function)
 ; and then called with parameters 4 5"
 
 ; this is, what happens behind the scenes
@@ -569,23 +580,26 @@ false
 (prn "abc" 123)
 
 ; use known formatters
-(format "this is a %.2f" 17.12345)
+(format "this is a %.2f" 17.12999)
 (format "this %s is a %s" "string" "normal one.")
 (format "this is a %d. But try to make it a 17.5" 17)
+; prefer printf over (print (format ...))
+(printf "this is a %.2f\n" 17.12345)
 
 ; string may be used as sequence
 (map int "abc")
 
 ; string functions
-(str/join "---" [12 "12" :12])
+(str/join "---" [11 "12" :13])
 
-; explore all
+; -------------------------------------------------------------------
+;         exploring in the repl
+; -------------------------------------------------------------------
+
 (use '[clojure.repl])
-
 (dir str)
 (doc str/split-lines)
-; Prefer printf over (print (format …​)) .
-(printf "this is a %.2f" 17.12345)
+(dir clojure.repl)
 
 ; -------------------------------------------------------------------
 ;         more comments 
@@ -605,13 +619,13 @@ false
 ; You may show your thoughts in an executable way 
 ; in those comments.
 
-(comment
+(comment ; rich comment
 
   (+ 40 2)
 
   ; evaluate in order to define this function 
   (defn fun [n]
-    (clojure.string/join (repeat n " 🤪 ")))
+    (str/join (repeat n " 🤪 ")))
 
   (fun 3)
 
@@ -626,19 +640,19 @@ false
 ;         lists, vectors and sets 
 ; -------------------------------------------------------------------
 
-; Collection operations take a certain type of collection and return the same type. 
+; __Collection_operations__ take a certain type of collection and return the same type.
 ; So if you do an update with a map, it returns a new map. 
 ; If you do update with a vector, it returns a new vector. 
 ; These operations are update, dissoc, assoc, etc.
 (update [1 2 3] 1 dec)
-(update [1 2 3] 1 - 5) ; uses function to transfrom one value
+(update [1 2 3] 1 - 5) ; uses function and params to transfrom one value
 ; get the original value (ov) with idx = 1, 
 ; call function with all the params and ov as FIRST parameter
 ; e.g. (- 2 5)
 (assoc [1 2 3] 1 5) ; uses keys/value(s) to transform 1..n values
 (assoc [1 2 3] 1 5 3 17) ; more... even adding at the end. But not more
 
-; Sequence operations will coerce their argument to a sequence and return a particular type. 
+; __Sequence_operations__ will coerce their argument to a sequence and return a particular type.
 ; These are your map, filter, take, drop, group-by, frequencies, etc. 
 ; You’ll notice that all sequence operations take the sequence last.
 (cons 1 [3 4]) ; sequence operation: returns a sequence
@@ -646,9 +660,9 @@ false
 ; more on sequences later
 
 ; lists - add at head (conj), take at head (first), remove head (rest)
-; Basically, thats a stack.
-(conj '(1 2 3) 1) ;; add at head
-(conj [1 2 3] 1) ;; vector conjoins at end
+; Basically, that's a stack.
+(conj '(1 2 3) 5) ;; add at head
+(conj [1 2 3] 5) ;; vector conjoins at end
 (first '(1 2 3))
 (rest '(1 2 3))
 (count '(1 2 3))
@@ -693,10 +707,16 @@ false
 
 ; queue 
 ; details https://github.com/danielmiladinov/joy-of-clojure/blob/master/src/joy-of-clojure/chapter5/how_to_use_persistent_queues.clj
+(defmethod print-method clojure.lang.PersistentQueue [q, w] ; Overload the printer for queues so they look like fish
+  (print-method '<- w)
+  (print-method (seq q) w)
+  (print-method '-< w))
 
 ; use conj, into, peek, and pop.
 (into (clojure.lang.PersistentQueue/EMPTY) [4 6 8 9 12 15])
 (def q (into (clojure.lang.PersistentQueue/EMPTY) [4 6 8 9 12 15]))
+
+(println q)
 (conj q 99)
 (peek q) ; same as first (peek and pop are working together 'at one side' - for different collections)
 (pop q) ; same as rest, but delivers queue, not sequence
@@ -748,23 +768,42 @@ false
 ; It is not resolved and is useful e.g. in maps
 :not-a-string
 :column
+(def cursor {:column 14 :row 19})
+(:row cursor)
+(cursor :row)
+(keyword "row")
+(name :row)
 
 ; namespaced keyword - if you want to use it somewhere else,
 ; and the namespace is required as "my-ns" then refer to it as :my-ns/column
+; in my-ns, the may be referred to as ::column
 (assert (=
          ::column
          :kata-0100-basics-in-15-min.core/column))
 
+(def cursor-with-ns-keys {::column 14 ::row 19})
+
+(assert ;; usage in another namespace, keyword as unique value
+  (= 14
+     (:kata-0100-basics-in-15-min.core/column cursor-with-ns-keys)))
+
+(assert
+  (= 14
+     (::column cursor-with-ns-keys)))
+
 ; maps
 ; with keywords as keys
+
 {:width 15 :heigth 25}
 (hash-map :width 15 :heigth 12) ; identical
 
 (def example-map {:width 15 :heigth 25})
 ; a keyword may be used as a function
 (:heigth example-map)
+; and a map, too
+(example-map :heigth)
 
-(let [new-map (assoc example-map :thickness 10) ;; assoc(iate) an key/value to the map, name the new map u
+(let [new-map (assoc example-map :thickness 10) ;; assoc(iate) a key/value to the map, name the new map u
       k :thickness]
   (println "exa-map =" example-map)
   (println "new-map =" new-map)
@@ -817,7 +856,7 @@ false
 ; -------------------------------------------------------------------
 
 ; Sequence operations will coerce their argument to a sequence and return a particular type. 
-; These are your map, filter, take, drop, group-by, frequencies, etc. 
+; These are map, filter, take, drop, group-by, frequencies, etc.
 ; You’ll notice that all sequence operations take the sequence last.
 
 (range 10) ; create a sequence of numbers from 0 to 9
@@ -830,11 +869,12 @@ false
 
 ; to create a sequence out of other collections, use seq
 (seq [1 2 3])
-(type (seq [1 2 3])) ;; with seq, we do the trick.
+(type (seq [1 2 3]))
 
 ; first, rest, cons and concat work on sequences.
 ; AND: Those Sequence lib functions transform other data types to sequences,
 ; if they are "seqable?".
+(seq? [1 2 3])
 (seqable? [1 2 3])
 (first [1 2 3])
 (rest [1 2 3])
@@ -851,20 +891,28 @@ false
 
 ; a square function that signals it's parameter, when called
 (defn mysqr [n]
-  (println "mysqr:" n)
+  (println (str " " n "^2 "))
   (* n n))
 
-; create a lazy sequence of squares recursively, starting at n 
+; create a lazy sequence of squares recursively, starting at n
+; see documentation page: https://clojuredocs.org/clojure.core/lazy-seq
 (defn squares
   [n] (lazy-seq (cons (mysqr n) (squares (inc n)))))
 
-(def s (squares 3))
+(def s (squares 10))
 
 ; still "in lazy mode"...
 (realized? s)
 
 ; they are realized one by one during "taking"
-(println "result: " (take 3 s))
+(def res (take 3 s))
+(realized? s)
+(type res)
+(def real (doall res))
+(type real)
+(println "result: " real)
+(def res (take 5 s))
+(println "result: " res)
 
 (realized? s)
 
@@ -875,8 +923,8 @@ false
 (keep  #(> % 1) '(3 1 1 1 2)) ; the return value is used...
 (keep-indexed (fn [idx data]
                 (if (odd? idx)
-                  data
-                  (str "not-odd...idx=" idx ",data=" data)))
+                  {:unchanged data :idx idx}
+                  (str "stringed-not-odd...idx=" idx ",data=" data)))
               '(19 \d 10 20))
 
 ; Longer seq from a shorter seq: cons concat lazy-cat mapcat cycle interleave interpose
@@ -913,6 +961,8 @@ false
 (nthnext [] 3)
 (drop 3 [])
 
+
+; NOT a for loop - but list creation!
 (for [x (range 8) y (range 5)
       :while (< y x)
       :let [z (* x y)]]
@@ -949,6 +999,7 @@ false
 ; Process each item of a seq to create a new seq: map pmap mapcat for replace reductions map-indexed seque
 (map square [1 2 3 4])
 
+(set! *print-length* 20)
 (time (doall (map square (range 1000))))
 (time (doall (pmap square (range 1000)))) ; only useful if f is heavy!
 
@@ -976,7 +1027,22 @@ false
         '(1 2 3))
 
 (reductions + 100 '(1 2 3))
-(map-indexed (fn [idx val] [(str "idx=" idx) val]) [:one :two :three])
+
+(set! *print-length* 20)
+; be careful in repl... this prints forever...
+; or you set the *print-length*
+(prn (iterate inc 10))
+(set! *print-length* nil)
+
+(def add3 (partial + 3)) ;; like currying in groovy
+(def sqr-and-add-3 (comp add3 square)) ;; applied right to left!
+(sqr-and-add-3 2)
+
+(take 30 (iterate (partial + 3) 10))
+(take 30 (iterate add3 10))
+(take 3 (iterate sqr-and-add-3 10))
+
+(map-indexed (fn [idx val] [(str "idx=" idx) val]) [:the-one :two-too :three-me])
 ;;(seque) we leave that out until threading
 
 ; Using a seq
@@ -998,18 +1064,36 @@ false
 ; Construct a collection from a seq: zipmap into reduce set vec into-array to-array-2d frequencies group-by
 (zipmap [:a :b :c] [1 2 3 4 5 6])
 (into (sorted-set) [3 3 3 4 0  0 0  5 -1 8 9])
-(reduce + '(1 2 3))
+(reduce + 100 '(1 2 3))
+(reduce + 100 '(2 3))
+(reduce + '(2 3))
+(reduce + '())
+(reduce * 100 '(2 3))
+(reduce * '(2 3))
+(reduce * '())
 (reduce conj [1 2 3] [:more :of :this])
+(reduce (fn [acc val](conj acc (name val)))
+        [1 2 3]
+        [:more :of :this])
 
 (defn factorial
   [x]
-  (reduce * (range 1 (inc x))))
+  (reduce * (range 1M (inc x))))
 
-(factorial 20)
+(factorial 10)
+
+; suppress printing in repl
+(set! *print-length* 10)
+(time (doall (map factorial (range 2000))))
+
+; memoize
+(def mem-fac (memoize factorial))
+(time (doall (map mem-fac (range 2000))))
+(time (doall (map mem-fac (range 2000))))
 
 (set '(1 2 2 2 2 3))
 (vec '(1 2 2 2 2 3))
-(into-array '(1 2 2 2 2 3))
+(into-array '(1 2 2 2 2 3)) ; java array
 
 ; Pass items of a seq as arguments to a function: apply
 (max 4 -1 99 -99)
@@ -1017,6 +1101,7 @@ false
 
 ; Compute a boolean from a seq: not-empty some reduce seq? every? not-every? not-any? empty?
 (not-empty [3 4])
+(not-empty [])
 (not-empty '())
 (some pos? '(-3 -2))
 (some pos? '(-3 -2 1))
@@ -1037,12 +1122,14 @@ false
         y [4 5 6]]
   (prn (* x y)))
 
+;; since lazy AND chunked, will not be printed completely!
 (for [x [1 2 3]
       y (range 100)]
   (do
     (prn x y)
     (* x y)))
 
+;; doall changes that...
 (doall (for [x [1 2 3]
              y (range 100)]
          (do
@@ -1053,16 +1140,21 @@ false
 (def lazy1 (map println [3 4 5 6]))
 ; Check if lazy seqs have been forcibly evaluated: realized?
 (realized? lazy1)
+; dorun --> only side-effects, no return value
 (dorun lazy1)
 (realized? lazy1) ; now, it's realized. But it's also realized with (take 1 lazy1)!
 
+; doall --> sequence with results
 ; lazy2 - realization of ALL is enforced
 (def lazy2 (doall (map println [3 4 5]))) ; return realized sequence
-(nil? lazy2)
+(println lazy2)
 (realized? lazy2)
 
-(def lazy3 (dorun 2 (map println [3 4 5]))) ; returns nil
-(nil? lazy3)
+(dorun 1 (map #(println "hi" %) ["mum" "dad" "sister"]))
+(def lazy3 (dorun 2 (map println (range 100)))) ; returns nil
+(println lazy3)
+
+;; run! and mapv also kills laziness
 
 ; Creating a seq
 ; Lazy seq from collection: seq vals keys rseq subseq rsubseq
@@ -1071,7 +1163,7 @@ false
 (keys {:k1 "value" :k2 "v2"})
 (rseq [3 4 5])
 (subseq (apply sorted-set [0 1 2 3 4 5]) > 2)
-(rsubseq (apply sorted-set [0 1 2 3 4 5]) > 2)
+(rsubseq (apply sorted-set [0 20 3 4 5 9 99 23 23 10 23]) > 2 < 11)
 
 ; Lazy seq from producer function: lazy-seq repeatedly iterate
 (defn increasing-numbers [n]
@@ -1091,23 +1183,29 @@ false
 (repeat 5 (rand-int 100))
 ; e.g. (94 94 94 94 94)
 
-(range 5 16 3)
+(range 4 16 2)
 
 ; Lazy seq from other objects: line-seq resultset-seq re-seq tree-seq file-seq xml-seq iterator-seq enumeration-seq
 (with-open [rdr (clojure.java.io/reader "/etc/passwd")]
   (count (line-seq rdr)))
 
+(set! *print-length* nil)
+(-> (slurp "/etc/passwd")
+    (str/split  #"\n")
+    count)
+
 (import '(java.io BufferedReader StringReader))
 (line-seq (BufferedReader. (StringReader. "1\n2\n\n3")))
 
 (re-seq #"[A-Z][a-z]+|[0-9]+" "ManishKumar12332")
-(tree-seq (fn [elem] (not (number? elem)))
-          seq
-          '((1 2 (3)) (4)))
+(tree-seq
+  (fn [elem] (not (number? elem))) ;; is the element a branch?
+  seq ;; get the children
+  '((1 2 (3)) (4)))
 
 (def f (clojure.java.io/file "/etc"))
 (def fs (file-seq f))
-;(clojure.pprint/pprint (take 100 fs))
+;(clojure.pprint/pprint (take 10 fs))
 
 ; not on classpath [org.clojure/data.xml "0.0.8"]
 #_(use '[clojure.data.xml :only [parse-str]])
@@ -1129,7 +1227,18 @@ false
 ; Rule 3: STM or Agents are rarely needed... 
 ; see: https://clojure.wladyka.eu/posts/share-state/ 
 
-(def my-state (atom {}))
+; a little helper first:
+(defn say-hello [name] (str "Hello " name))
+(def say-hello-with-defaults (fnil say-hello "World"))
+(say-hello-with-defaults "Sir")
+(say-hello-with-defaults nil)
+
+(def my-state (atom {})) ; could be anything... long, string, ...
+(type my-state)
+(println @my-state)
+
+
+(reset! my-state {:now-totally-resetted :yes})
 
 ; if you want to change an atom, use swap or reset
 (swap! my-state update :x (fnil inc 0))
@@ -1147,17 +1256,16 @@ false
 ; This means, that the function may be called several times.
 ; Therefore, it has to be pure - means, free from side effects.
 
-
-
 ; -------------------------------------------------------------------
 ;         higher order functions 
 ; -------------------------------------------------------------------
 
 ; HINT: in clojure, use higher order functions like
-; map, filter and reduce and 
-; try to avoid looping and branching  
+; map, filter and reduce, iterate, juxt, comp, repeatedly, partial.
+; try to avoid looping and branching
 
 
+; a function returning functions while closing over parameters
 (defn get-the-right-fun
   "Depending on x < 5 (4 3 1 ...), returns a function with 2 or else with 3 parameters.
   And even more interessting, x is 'closed over'.
@@ -1174,7 +1282,6 @@ false
 (f3 1 2 3)
 
 ; HOFs (higher order functions) either use functions as parameters or return functions as results - or both.
-
 ; https://christophermaier.name/2011/07/07/writing-elegant-clojure-code-using-higher-order-functions/
 
 ; they can replace many loops and branching...
@@ -1190,9 +1297,9 @@ false
 (def times-5 (partial * 5))
 (times-5 20)
 
-(def combined-f (comp (partial * 5)
-                      (partial + 20)))
-(combined-f 1) ; (* 5 (+ 20 x)
+(def plus-20-times-5 (comp (partial * 5)
+                           (partial + 20)))
+(plus-20-times-5 2) ; (* 5 (+ 20 x)
 
 ((complement seq) []) ; may be the same as (comp (not (seq)))
 
@@ -1254,11 +1361,10 @@ false
 ;    incomming-data --> processing --> outgoing-data
 
 (do ;; 'do' one side effect after the other... 
-  (println "abc") ;; Not interessted in result. Only in side-effect.
+  (println "abc") ;; Not interested in result. Only in side effect.
   (cons :a [:b :c]))
 
-
-;;;; this is imperative
+;;;; this is imperative (and shows java interop)
 
 (defn simple-date [d]
   (.format
@@ -1301,12 +1407,12 @@ false
 ;         branching 
 ; -------------------------------------------------------------------
 
-; sometimes, or is used to provide a value 
+; sometimes, (or ...) is used to provide a value
 (or false "default-value")
 (or nil "default-value")
 (or "value-available" "default-value")
 
-; if has exactly one form for if branch and for else branch
+; (if ...) has exactly one form for if branch and for else branch
 (if true
   "this"
   "that")
@@ -1337,19 +1443,19 @@ false
     :else "this is the default result"))
 
 (cond
-  (fn? sum-even-numbers) "sumfin")
+  (fn? sum-even-numbers) "is fn")
 
 (cond
-  (number? sum-even-numbers) "sumfin")
+  (number? sum-even-numbers) "not this branch but nil")
 
 (cond
-  (number? sum-even-numbers) "sumfin"
-  :else "default")
+  (number? sum-even-numbers) "yes, it's a number"
+  :else "this is the default branch, typically called :else")
 
 (let [n 4]
   (condp > n
-    ;; (pred test-expr expr), e.g. (> 4 n )
-    5 "n is smaller than 5"
+    ;; (pred test-expr expr), e.g. (> 5 n )
+    5 "5 is bigger than n -- unintuitive precedence" ; (> 5 4=n )
     25 "n is 5 or bigger but smaller than 25"
     "this is the default result >= 25"))
 
@@ -1361,7 +1467,7 @@ false
   true (* 2)
   nil (+ 16)
   15  (cons [1 2 3])
-  nil (str/join))
+  false (str/join))
 
 ;; styleguide recomendations, see also https://clojuredocs.org/clojure.core/case
 (let [x 30]
@@ -1411,7 +1517,7 @@ false
 
 ; recursion as loop - but: stackframes are becoming a problem...
 (defn recursive-fun-fail [coll]
-  ;(println coll)
+  (println coll)
   (if (seq coll)
     (recursive-fun-fail (rest coll))
     "consumed everything"))
@@ -1425,7 +1531,7 @@ false
   (if (seq coll)
     (recur (rest coll))
     "consumed everything"))
-(recursive-fun (range 1000000))
+(recursive-fun (range 100000))
 
 ; recur may be used for loops with rebinding of parameters as with recursive function calls
 ; a very simple loop
@@ -1435,8 +1541,8 @@ false
     (recur (rest data)))) ; call a recur with data reduced by one element
 
 ;with loop, we can create a very idiomatic tail-recursion in clojure
-(loop [input (range 20) ;; initialize first loop parameter 
-       r-result '()] ;; initialze second parameter
+(loop [input (range 10) ;; initialize first loop parameter
+       r-result '()] ;; initialze second parameter, the recursion result.
   (if (seq input)
     (let [times-3 (* 3 (first input))]
       (recur
@@ -1446,7 +1552,7 @@ false
 
 ; but, this is very easily achived by map, iterate or reduce or filter...
 ; so loop/recur may be better replaced by map or reduce or iterate
-(map #(* 3 %) (range 19 -1 -1))
+(map #(* 3 %) (range 9 -1 -1))
 
 ; Finally, there is trampoline.
 ; Whenever it get's a function back, it calls it again.
@@ -1461,7 +1567,7 @@ false
 (trampoline (countdown 20)) ; but this avoids stack frames
 ; trampoline is useful in mutual, recursive function calls
 ; because they cannot be made with recur.
-
+; BUT: slower...
 
 ; there are some more imperative loops, you have already seen
 ; e.g. doseq
@@ -1474,21 +1580,42 @@ false
 ; some global variables, that enable working in REPL
 
 (comment
+
   (use '[clojure.repl])
   (doc use)
   (source use)
   (ns-publics 'clojure.repl)
   (dir clojure.repl)
+  "result-one"
   (* 50 4)
   (+ 1 3)
+  (str *1 " - " *2 " - " *3) ; *1 = last, *2 = before and before before
   (/ 1 0)
-  (pst)
-  (* *2 *1))
+  (pst))
 
 
+;meta info for the compiler, the runtime and humans
+(def ^{:dynamic true :author :bel} a-var "value")
+;; just to remember... symbol -> variable -> value
+(assert (= (deref (var a-var)) a-var))
+
+(println a-var)
+(meta (var a-var))
+(meta #'a-var) ; same...
+(meta a-var) ; DOES NOT WORK
+(set! *print-meta* true)
+(pr (var a-var))
+(set! *print-meta* false)
+(println (var a-var))
+
+;; this is a shorthand notation for
+;; {:tag java.lang.String, :private true}
+;; type hint for compiler
+(def ^:private ^String priv-str "Hello, world!")
+(meta #'priv-str)
 
 ;; sometimes, rebinding is useful for testing in REPL
-(def ^:dynamic xxx 1)
+(def ^:dynamic xxx 1) ; try remove ^:dynamic
 (def ^:dynamic yyy 1)
 (+ xxx yyy)
 
@@ -1504,6 +1631,7 @@ false
 ; plain assert
 (assert (= 2 2))
 
+;; lets try a macro - it get's its parameters unevaluated...
 (defmacro a
   "an assert that returns it's value"
   [expected check-and-return]
@@ -1539,12 +1667,12 @@ false
             (pos? (:fail test-results)))
       (do
         (println)
-        (clojure.pprint/pprint :=======-failed-tests-=======)
+        (clojure.pprint/pprint :=======-FAILED-some-tests-FAILED-=======)
         (println)
         (println test-results))
       (do
         (println)
-        (clojure.pprint/pprint (str "*** PASSED-TEST *** "
+        (clojure.pprint/pprint (str "*** passed tests *** "
                                     "(assertions: "
                                     (:pass test-results) ")"))
         #_(println)
@@ -1590,7 +1718,7 @@ false
 (re-matches #"abc" "zzzabcxxx") ; no complete match...
 (re-matches #".*a.c.*" "zzzabcxxx") ; complete match...
 
-(re-seq #"is+" "mississippi") ; a sequence of matches
+(re-seq #"i[sp]+" "mississippi") ; a sequence of matches
 
 ; if you want positions of matches
 (defn re-pos [re s]
@@ -1621,11 +1749,11 @@ false
 
 (try
   (if true
-    ;(throw (ex-info "my ex" {:data 123}))
-    (assert (= 1 3))
+    (throw (ex-info "my ex" {:data 123}))
+    ;(assert (= 1 3))
     "this will happen - maybe later")
   (catch Exception e (str "caught exception: " (.getMessage e)))
-  (catch AssertionError e (str e))
+  (catch AssertionError e (str "YES! " e))
   (finally (println "finally...")))
 
 
@@ -1637,8 +1765,8 @@ false
 (def my-vector [:a :b :c :d])
 (def my-nested-vector [:a :b :c :d [:x :y :z]])
 
-(let [[a b c d] my-vector]
-  (println a b c d))
+(let [[an-a the-b cee dee] my-vector]
+  (println an-a the-b cee dee))
 
 (let [[a _ _ d [x y z]] my-nested-vector]
   (println a d x y z))
@@ -1675,11 +1803,11 @@ false
 (defn destr [& {:keys [a b] :as opts}]
   [a b opts])
 
-(destr :a 1)
+(destr :a 1 :c 2)
 
 ; starting from clojure version 1.11
-;(destr {:a 1 :b 2})
 *clojure-version*
+;(destr {:a 1 :b 2})
 
 ; -------------------------------------------------------------------
 ;         concurrency and state
@@ -1690,36 +1818,44 @@ false
                       (Thread/sleep 1000)
                       42))
     (println (future-done? the-answer)) ;; no, not yet...
-    (println @the-answer))
+    (println @the-answer)
+    (println (future-done? the-answer))) ;; yes, now awaited...)
 
 
 (do (def choose-burger (future
-                         (Thread/sleep 1000)
+                         (Thread/sleep 100)
                          :hamburger))
-    (println (@choose-burger 300 :cheeseburger))) ; timeout with default
+    (deref choose-burger 500 :cheeseburger) ; try with 200. timeout with default
+    #_(@choose-burger 10000 :cheeseburger)) ; last one does not work!
 
+(let [make-burger (fn [b-type wait] (future (Thread/sleep wait) b-type))
+      burger-1 (make-burger :royale-with-cheese 1000)
+      burger-2 (make-burger :hamburger 50)]
+  (println (deref burger-1 300 :cheeseburger))
+  (println (deref burger-2 300 :cheeseburger)))
 
 ; first of all with a TOTALLY WRONG redefinition of variables. RACE CONDITION.
 ; DON'T USED re-def's in code. Re-Def's are only for debugging and repl.
-(do (def number 0)
-    (let [f1 (future (dotimes [_ 50000] (def number (inc number)))
-                     number)
-          f2 (future (dotimes [_ 25000] (def number (dec number)))
-                     number)
-          fin [@f1 @f2]]
-      (println "finished both " fin)
-      (println "final value should be: 25000, is: " number)))
+(time (do (def number 0)
+          (let [f1 (future (dotimes [_ 50000] (def number (inc number)))
+                           number)
+                f2 (future (dotimes [_ 25000] (def number (dec number)))
+                           number)
+                fin [@f1 @f2]]
+            (println "finished both " fin)
+            (println "final value should be: 25000, is: " number))))
 
 ;; now with an atom... The clojure way to synchronize state without thread locking...
 ;; For "lockfree synchronisation", see java AtomicReference compareAndSet
-(do (def number-a (atom 0))
-    (let [f1 (future (dotimes [_ 50000] (swap! number-a inc))
-                     @number-a)
-          f2 (future (dotimes [_ 25000] (swap! number-a dec))
-                     @number-a)
-          fin [@f1 @f2]]
-      (println "finished both " fin)
-      (println "final value should be: 25000, is: " @number-a)))
+
+(time (let [number-a (atom 0)
+            f1 (future (dotimes [_ 50000] (swap! number-a inc))
+                       @number-a)
+            f2 (future (dotimes [down 25000] (swap! number-a dec))
+                       @number-a)
+            fin [(str "finished-up-at: " @f1) (str "finished-down-at: " @f2)]]
+        (println "finished both " fin)
+        (println "final value should be: 25000, is: " @number-a)))
 
 (do (def xa 0)
     (doall (repeatedly 500
@@ -1757,8 +1893,8 @@ false
       (recur (inc i) (conj! v i))
       (persistent! v))))
 
-(time (def v (vrange 1000000)))    ;; 80 - 200 ms
-(time (def v2 (vrange2 1000000)))  ;; 43 -70 ms
+(time (def v (vrange 10000000)))    ;; 80 - 200 ms
+(time (def v2 (vrange2 10000000)))  ;; 43 -70 ms
 
 
 
@@ -1788,7 +1924,7 @@ false
 ; call a method on an object
 (.toUpperCase "fred")
 
-(.. System (getProperties) (get "os.name"))
+(.. System getProperties (get "os.name"))
 (-> (System/getProperties) (.get "os.name"))
 
 (doto (new java.util.HashMap) (.put "a" 1) (.put "b" 2))
@@ -1844,25 +1980,25 @@ false
 (type (into [] (r/map inc [1 2 3])))
 
 ;;;;;;; see performance of fully exploited reducers: 
-
-(def snums (range 10000000))
-(def snumsv (vec snums)) ; foldable
+(comment
+ (def snums (range 10000000))
+ (def snumsv (vec snums)) ; foldable
 
 ; fastest: fold parallel, vector, reducers without intermediate colls
 ; 70 ms
-(time (->> snumsv (r/map inc) (r/filter even?) (r/fold +)))
+ (time (->> snumsv (r/map inc) (r/filter even?) (r/fold +)))
 
 ; slowest: just plain and serial: 400 ms
-(time (->> snums (map inc) (filter even?) (reduce +)))
+ (time (->> snums (map inc) (filter even?) (reduce +)))
 
 ; reducers with unfoldable coll: 300 ms
-(time (->> snums (r/map inc) (r/filter even?) (r/fold +)))
+ (time (->> snums (r/map inc) (r/filter even?) (r/fold +)))
 
 ; reducers with unfoldable coll: 300 ms
-(time (->> snums (r/map inc) (r/filter even?) (reduce +)))
+ (time (->> snums (r/map inc) (r/filter even?) (reduce +)))
 
 ; reducers with foldable coll but reduce: 300 ms
-(time (->> snumsv (r/map inc) (r/filter even?) (reduce +)))
+ (time (->> snumsv (r/map inc) (r/filter even?) (reduce +))))
 
 
 ;;;;; transducers
@@ -1874,12 +2010,17 @@ false
 (into [] (map inc) (range 10))
 (sequence (map inc) (range 10))
 
+; why not use seq? what's the difference to sequence?
+;(seq (map inc) (range 10)) ; does not work
+(seq []) ; delivers nil
+(sequence []) ; delivers an empty sequence
+
 ; this creates a transducer, too
 (def xf
-  (comp
+  (comp ; when used with transducers, the order is forward - not backward!
    (filter odd?)
-   (map inc)
-   (take 50)))
+   (map inc)))
+   ;(take 50)))
 
 ; use the xf
 (transduce xf + (range 5))
@@ -1889,6 +2030,10 @@ false
 (def iter (eduction xf (range 5)))
 (reduce + 0 iter)
 
+
+; Transducers can be used with collections, async channels and with other "sequential data mechanisms".
+; They describe the transformation of elements without having to know about the access mechanism of the source.
+; While doing this, they use the complete power of clojure core (map, filter, ...)
 
 ; -------------------------------------------------------------------
 ;         your own types: polymorphism, protocolls and more 
@@ -2110,6 +2255,11 @@ false
 ; defmacro prevents the parameters to be evaluated before passed
 ; into the macro body... Therefore, the macro-body can 
 ; change code by working on the lists...
+(defmacro my-m-no-quote [not-evaluated]
+  (str "form = " not-evaluated " = " (eval not-evaluated)))
+(my-m-no-quote (* 2 3))
+(macroexpand '(my-m (* 2 3)))
+
 (defmacro my-m [not-evaluated]
   `(str  "form = " '~not-evaluated " = " ~not-evaluated))
 
@@ -2145,16 +2295,36 @@ false
   `(let [bel-n# '~not-evaluated
          bel# ~not-evaluated]
      (str  "form = " bel-n# " = " bel#)))
+;
+
 (my-m2 (+ 1 3))
 (macroexpand '(my-m2 (+ 1 3)))
 
-(defmacro dbg [body]
+(defmacro bel-dbg [body]
   `(let [body# ~body]
      (println "-------- dbg -------->>")
      (println  '~body " => " body#)
      (println "<<------ dbg --------")
      (println)
      body#))
+
+
+(comment
+  (+ 5 (bel-dbg (/ 1 (+ 2 1))))
+
+  ; a little bit strage in thread-last macro
+  (->>  (range 100)
+        (map (partial + 20))
+        (take 10)
+        bel-dbg
+        (map inc))
+
+  (macroexpand '(->>  (range 100)
+                      (map (partial + 20))
+                      (take 10) bel-dbg
+                      (map inc))))
+
+
 
 (defn what-arg [arg]
   (cond
@@ -2163,10 +2333,13 @@ false
     :else arg))
 (comment
   (what-arg '(+ 4 5))
+  (what-arg (+ 4 5))
+  (bel-dbg (+ 4 5))
   (what-arg [3 4])
   (what-arg [])
   (what-arg 4)
   (what-arg nil))
+
 
 
 (defmacro make-sure
@@ -2188,6 +2361,7 @@ false
        ~val)))
 
 (comment
+  (make-sure float? (+ 4.3 (make-sure integer? 5)))
   (macroexpand '(make-sure float? 5))
   (make-sure float? (+ 5 1))
   (make-sure float? nil)
@@ -2216,19 +2390,6 @@ false
   (square 4)
   (square 5))
 
-
-(+ 5 (dbg (/ 1 (+ 2 1))))
-
-; a little bit strage in thread-last macro
-(->>  (range 100)
-      (map (partial + 20))
-      (take 10) dbg
-      (map inc))
-
-(macroexpand '(->>  (range 100)
-                    (map (partial + 20))
-                    (take 10) dbg
-                    (map inc)))
 
 ; -------------------------------------------------------------------
 ;         special forms - this is the core of clojure... 

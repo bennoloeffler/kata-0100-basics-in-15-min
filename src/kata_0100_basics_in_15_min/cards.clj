@@ -61,17 +61,17 @@
                   :post [(make-sure-2 (< % 1000))
                          (make-sure number? %)]}
                  (* num num))
-        n 55]
-    (println (square n)))
-  )
+        n 125]
+    (println (square n))))
+
 
 
 (comment
   (make-sure-2 (= 13 (+ 12 1)))
   (def n "17")
   (let [other-n (make-sure-2 (string? (str/join (repeat 15 n))))]
-    other-n)
-  )
+    other-n))
+
 
 ; -------------------------------------------------------------------
 ;                 "A two player card game with simple rules:
@@ -862,7 +862,7 @@
   (println (play a-game)))
 
 (comment
-  (-main)
-  )
+  (-main))
+
 
 
