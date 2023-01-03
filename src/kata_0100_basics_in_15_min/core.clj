@@ -7,7 +7,8 @@
 ; lists of things inside parentheses, separated by whitespace.
 ;
 ; The clojure reader assumes that the first thing is a
-; function or macro to call, and the rest are arguments.
+; function or macro to call, and the re
+; st are arguments.
 
 (inc 15) ;; This is a meaningless single line comments.
 (println "Hello Armin!") ;; returns nil, prints on output
@@ -22,7 +23,6 @@
 map     ; map, filter and reduce may be known by java folks.
 filter  ; HOFs (higher oder functions) are functions,
 reduce  ; that take or create other functions.
-
 
 ; -------------------------------------------------------------------
 ;          useful docs 
@@ -58,6 +58,7 @@ reduce  ; that take or create other functions.
   (:require [clojure.set :as set]
             [clojure.string :as str :refer [join]]
             [erdos.assert :as ea]))
+
 ; This constuct can be found at the beginning of clojure files
 ; File naming is typically kata_0100_basics_in_15_min/core
 ; So the point marks subdirectories. The - is replaced by _
@@ -82,8 +83,7 @@ join ;; :require :refer [join] -> no prefix at all
 ; you may leave things out...
 ; This is is also a kind of comment - an IGNORED form - because of #_
 #_(ns kata-0100-basics-in-15-min.core
-    (:require [clojure.set]
-              [clojure.string :as str]))
+    (:require [clojure.set] [clojure.string :as str]))
 
 ; You may use the complete namespace with ALL symbols
 ; (use 'clojure.string)
@@ -102,7 +102,7 @@ join ;; :require :refer [join] -> no prefix at all
 ; Everything else is O(n).
 ; Vectors have random access in O(1).
 
-(+ 2 3)
+(* 2 3)
 (str 2 \x 3 " = " (* 2 3))
 
 ; list can serve as data, data is code = AST = homoiconic
@@ -129,6 +129,9 @@ join ;; :require :refer [join] -> no prefix at all
 ; this is an anonymous function - not attached to a symbol
 ; f(x) = 2 * x
 (fn [x] (* 2 x))
+(def f2 "the f" (fn [x] (* 2 x)))
+(defn f1 "doc" [x] (* 2 x))
+
 ; seems not useful - but wait a moment...
 
 ; 'map' applies the function inc to every element of the vector
@@ -165,9 +168,9 @@ join ;; :require :refer [join] -> no prefix at all
 ; it puts the last result at the very end of the next parameter list, 
 ; there: (  ,,,)
 (->> [1 2 3 4 5 6]
-     (filter odd? ,,,)
-     (map #(* % %) ,,,)
-     (reduce + 100 ,,,))
+     (filter odd?)
+     (map #(* % %))
+     (reduce + 100))
 
 ; see what the "threading macro does..."
 (macroexpand '(->> [1 2 3 4 5 6]
@@ -202,7 +205,7 @@ join ;; :require :refer [join] -> no prefix at all
 ; -------------------------------------------------------------------
 
 ; lexical scoped variables - invisible after that expression 
-(let [x 10 ; x is defined ony in this scope
+(let [x 10 ; x is defined only in this scope
       y 20
       z (+ x y)]
   (* x y z)) ; x is not defined any more after closing behind let
@@ -215,14 +218,14 @@ join ;; :require :refer [join] -> no prefix at all
 ; part of this namespace and 
 ; visible from everywhere
 ; HINT: use rarely. Use 'let' whenever possible!
-(def x 1)
+(def x (atom 1))
 (+ x 5) ; does not change x and results in 6!
 
 ; define a function and attatch a symbol (name) to it
 (def half-of-v1
   (fn [x] (/ x 2)))
 
-(half-of-v1 10)
+(half-of-v1 9)
 
 ; identical - with a string as doc
 ; formatting 
@@ -250,7 +253,9 @@ join ;; :require :refer [join] -> no prefix at all
 
 ; this is a "stackoverflow-bomb..."
 (defn recurse-somehow-3
+
   ([n] (recurse-somehow-3 n []))
+
   ([n acc]
    (if (> n 0)
      (recurse-somehow-3 (- n 3) (conj acc n))
@@ -275,6 +280,9 @@ join ;; :require :refer [join] -> no prefix at all
 ; Re-Def's are only for debugging and repl. Remember that
 ; *earmuffs* are a convention for global, mutable variables.
 ; see: https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/*clojure-version*
+
+(set! *print-length* 10)
+(range 1000)
 
 (def ^:dynamic *xyz* 30)
 *xyz*
@@ -355,7 +363,7 @@ Math/PI
 (== 1 1.0) ; => true, long or double does not matter
 
 ; KATA: try to subtract down to zero 
-(- 10)
+(-10)
 ; HINT:
 #_(- 10 2 3 1 2) ;is near zero
 
@@ -401,8 +409,8 @@ false
 
 ; logic
 (not true)
-(and true false)
-(or true false)
+(and true nil)
+(or 1 false)
 
 ; some operators evaluate to boolean
 (> 4 3)
@@ -472,32 +480,35 @@ false
 
 ; A more functional style of viewing all types 
 ; apply the function 'type' to every element in the vector...
-(map #(vec [% (type %)]) [+
-                            1
-                            1N
-                            2.0
-                            3.0M
-                            1/3
-                            "2"
-                            :three
-                            \f
-                            false
-                            nil
-                            '(1 2 3)
-                            '()
-                            {:1 2 :3 4 :5 6 :7 8 :9 1 :2 3 :4 5 :6 7 :8 9} ;; => big = PersistentHashMap
-                            {:1 2} ;; => small = PersistentArrayMap
-                            []
-                            #{}])
+(defn el-type-vec [elem]
+  [elem (type elem)])
+
+(defn show-types [coll]
+  (map el-type-vec coll))
+
+(show-types [+
+               1
+               1N
+               2.0
+               3.0M
+               1/3
+               "2"
+               :three
+               \f
+               false
+               nil
+               '(1 2 3)
+               '()
+               {:1 2 :3 4 :5 6 :7 8 :9 1 :2 3 :4 5 :6 7 :8 9} ;; => big = PersistentHashMap
+               {:1 2} ;; => small = PersistentArrayMap
+               []
+               #{}])
 
 
 ; -------------------------------------------------------------------
 ;  resolving names, evaluating expressions, symbols, vars, values 
 ; -------------------------------------------------------------------
 
-; TODO where to put that
-; macros replace code with other code...
-;(map for  [:foo :bar])    ; can't pass macros as functions
 
 ; see the difference
 (+ 1 2) ; => 3
@@ -565,6 +576,8 @@ false
       last "Kim"]
   (str "My name is " first " " last))
 
+(subs "Benno" 1 3)
+
 ; numbers to string
 (str (+ 2 3 (* 5 100)) 999)
 
@@ -574,7 +587,7 @@ false
 ; without linefeed
 (print "a")
 (print "b")
-(print "c")
+(pr "c")
 
 ; print data
 (prn "abc" 123)
@@ -2441,3 +2454,13 @@ false
 ; -------------------------------------------------------------------
 ; https://guide.clojure.style/#idioms
 
+
+(def app-state (atom {:user "sdfsdf"
+                      :tree
+                      {:nix-a [1 2 3 4]
+                       :nix-b #{:a :b}}}))
+
+(assoc {:a 12 :b 13} :a 10)
+
+(let [cursor [:tree :nix-a]]
+  (swap! app-state assoc-in @app-state (conj cursor 4) 15))
